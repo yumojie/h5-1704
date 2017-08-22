@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+		<style type="text/css">
+			*{margin: 0;padding: 0;}
+			#container {width: 790px;height: 340px;position: relative; margin:100px auto; overflow:hidden;}
+			ul {list-style: none; position: absolute; left:0; top:0;}
+			li {float:left;}
+			#prev,#next {width: 45px;height: 100px;background: black; position: absolute; top:0; bottom: 0; margin:auto; color:white; font-size:40px; font-weight: bold; text-align: center; line-height: 100px; cursor: default;}
+			#next {right:0;}
+			#pages {position: absolute; background: black; bottom: 0; height: 30px;width:790px}
+			#pages div {width: 20px;height: 20px; border-radius: 10px; float:left; background: white; margin:5px;}
+			#pages div.current {background: red;}
+		</style>
+	</head>
+	<body>
+		<div id="container">
+			<ul>
+				<li><img src="images/1.jpg"></li>
+				<li><img src="images/2.jpg"></li>
+				<li><img src="images/3.jpg"></li>
+				<li><img src="images/4.jpg"></li>
+			</ul>
+		
+		<div id="prev"><</div>
+		<div id="next">></div>
+		<div id="pages"></div>
+		</div>
+		<script type="text/javascript" src="lib/jquery/jquery-1.12.4.min.js" ></script>
+		<script>
+			$(function(){
+				$(window).on("load",function(){
+					var $lis=$("li"),
+						len=$lis.length,
+						liWidth=$lis.outerWidth(),
+						currentIndex=1,
+						nextIndex=2,
+						$ul=$("ul"),
+						html="";
+						timer=null;
+					var $first=$lis.first().clone(true),
+						$last=$lis.last().clone(true);
+						
+						$first.appendTo($ul);
+						$last.prependTo($ul);
+						
+						len=len+2;
+						
+						$ul.css({
+							width:len*liWidth,
+							left:-liWidth
+						});
+						
+						for(var i=0;i<len-2;i++){
+							html+="<div></div>";
+						}
+						$(html).appendTo($("#pages"))
+								.eq(0).addClass("current");
+								
+						$("#container").hover(function(){
+							clearInterval(timer)
+							},function(){
+								timer=setInterval(move,3000)
+							}).trigger("mouseleave");
+							
+						// 利用事件委派将 div 小圆点的鼠标移入事件委派给 div#pages 的元素处理
+						
+						$("#pages").on("mousemove","div",function(){
+							nextIndex=$(this).index()+1;
+							move();
+						});
+						//向上
+						$("#prev").click(function(){
+							nextIndex=currentIndex-1;
+							move();
+						});
+						//向下
+						$("#next").click(function(){
+							move();
+						});
+						
+						function move(){
+							var _left=-liWidth*nextIndex;
+							
+							// 找出即将设置红色背景的小加点索引
+							var circleIndex = nextIndex >= len - 1 ? 0 : (nextIndex <= 0 ? len - 3 : nextIndex - 1);
+							// 修改小圆点上的样式
+							$("#pages div").eq(circleIndex).addClass("current")
+										   .siblings().removeClass("current");
+							
+							
+							currentIndex=nextIndex;
+							nextIndex++;
+							
+							$ul.stop().animate({left:_left},1000,function(){
+								if(nextIndex >= len){
+									$ul.css("left",-liWidth);
+									currentIndex=1;
+									nextIndex=2;
+								}else if(currentIndex<=0){
+										$ul.css("left",-liWidth*(len-2));
+										currentIndex=len-2;
+										nextIndex=len-1;
+									}
+								
+							});
+						}
+				});
+			});
+		</script>
+	</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style type="text/css">
+		* {margin: 0;padding: 0;}
+		#container {width: 790px;height: 340px;position: relative; margin:100px auto; overflow: hidden;}
+		ul {list-style: none; position: absolute; left:0; top:0;}
+		li {float:left;}
+		#prev,#next {width: 45px;height: 100px;background: black; position: absolute; top:0; bottom: 0; margin:auto; color:white; font-size:40px; font-weight: bold; text-align: center; line-height: 100px; cursor: default;}
+		#next {right:0;}
+		#pages {position: absolute; background: black; bottom: 0; height: 30px;width:790px}
+		#pages div {width: 20px;height: 20px; border-radius: 10px; float:left; background: white; margin:5px;}
+		#pages div.current {background: red;}
+	</style>
+</head>
+<body>
+	<div id="container">
+		<ul>
+			<li><img src="images/1.jpg"></li>
+			<li><img src="images/2.jpg"></li>
+			<li><img src="images/3.jpg"></li> <!--
+			<li><img src="images/4.jpg"></li>
+			<li><img src="images/5.jpg"></li>
+			<li><img src="images/6.jpg"></li> -->
+		</ul>
+		<div id="prev"><</div>
+		<div id="next">></div>
+		<div id="pages"></div>
+	</div>
+
+	<script type="text/javascript" src="lib/jquery/jquery-1.12.4.min.js"></script>
+	<script type="text/javascript">
+		$(function(){
+			$(window).on("load", function(){
+				var $lis = $("li"),
+					len = $lis.length,
+					liWidth = $lis.outerWidth(),
+					currentIndex = 1,
+					nextIndex = 2,
+					$ul = $("ul"),
+					html = "",
+					timer = null; // 自动轮播计时器id
+				// 复制第一张与最后一张图片盒子
+				var $first = $lis.first().clone(true),
+					$last = $lis.last().clone(true);
+				// 将复制的第一张图片追加到 ul 最后
+				$first.appendTo($ul);
+				// 将复制的最后一张图片插入到 ul 开头
+				$last.prependTo($ul);
+				// 修改 len 变量值
+				len += 2;
+				// 设置 ul 宽度，并默认设置显示第一张内容的图片
+				$ul.css({
+					width : len * liWidth,
+					left : -liWidth
+				});
+
+				// 动态添加小圆点 
+				// 生成小圆点用到的html字符串
+				for (var i = 0; i < len - 2; i++) {
+					html += "<div></div>";
+				}
+				/*// 追加到 div#pages 内部
+				$("#pages").html(html);
+				// 设置第一个小圆点红色背景
+				$("#pages div:first").addClass("current");*/
+				$(html).appendTo("#pages")
+					   .eq(0).addClass("current");
+
+				// 设置计时器，自动轮播
+				// timer = setInterval(move, 3000);
+
+				// 鼠标指针移入/移出容器范围，取消/设置自动轮播
+				$("#container").hover(function(){
+					clearInterval(timer);
+				}, function(){
+					timer = setInterval(move, 3000);
+				}).trigger("mouseleave");
+
+				// 利用事件委派将 div 小圆点的鼠标移入事件委派给 div#pages 的元素处理
+				// $("#pages").delegate("div", "mouseover", fn);
+				$("#pages").on("mouseover", "div", function(){
+					nextIndex = $(this).index() + 1;
+					move();
+				});
+
+				// 向上
+				$("#prev").click(function(){
+					nextIndex = currentIndex - 1;
+					move();
+				});
+
+				// 向下
+				$("#next").click(move);
+
+				// 轮播切换函数
+				function move() {
+					// 计算 ul 在滚动过程中的定位值
+					var _left = -liWidth * nextIndex;
+
+					// 找出即将设置红色背景的小加点索引
+					var circleIndex = nextIndex >= len - 1 ? 0 : (nextIndex <= 0 ? len - 3 : nextIndex - 1);
+					// 修改小圆点上的样式
+					$("#pages div").eq(circleIndex).addClass("current")
+								   .siblings().removeClass("current");
+
+					// 修改变量值
+					currentIndex = nextIndex;
+					nextIndex++;
+
+					// 调用 animate() 实现运动动画
+					$ul.stop().animate({left:_left}, 1000, function(){
+						if (nextIndex >= len) { // 向后翻到最后
+							$ul.css("left", -liWidth);
+							currentIndex = 1;
+							nextIndex = 2;
+						} else if (currentIndex <= 0) { // 向前翻到最前
+							$ul.css("left", -liWidth * (len - 2));
+							currentIndex = len - 2;
+							nextIndex = len - 1;
+						}
+					});
+				}
+			});
+		});
+	</script>
+</body>
+</html>
